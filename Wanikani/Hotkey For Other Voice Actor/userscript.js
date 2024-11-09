@@ -3,7 +3,7 @@
 // @description Binds the I key to play the audio from the other voice actor
 // @match       https://www.wanikani.com/*
 // @match       https://preview.wanikani.com/*
-// @version     1.2.0
+// @version     1.2.1
 // @author      Kumirei
 // @license     MIT; http://opensource.org/licenses/MIT
 // @run-at      document-end
@@ -24,6 +24,7 @@
     wkof.include('ItemData')
     await wkof.ready('ItemData')
     let vocab // WKOF vocab items
+    const audio = new Audio()
     init()
 
     function confirm_wkof() {
@@ -40,7 +41,9 @@
 
     async function init() {
         vocab = await wkof.ItemData.get_items({ wk_items: { filters: { item_type: 'voc' } } })
-        window.addEventListener('keydown', onKeydown)
+        window.addEventListener('didAnswerQuestion', () => { window.addEventListener('keydown', onKeydown) }, {passive: true})
+        window.addEventListener('didUnanswerQuestion', () => { window.removeEventListener('keydown', onKeydown) }, {passive: true}) // for double-check
+        window.addEventListener('willShowNextQuestion', () => { window.removeEventListener('keydown', onKeydown) }, {passive: true})
     }
 
     function onKeydown(event) {
@@ -79,7 +82,7 @@
         })
 
         const alternatePronunciation = pronunciations[0]
-        const audio = new Audio(alternatePronunciation.url)
+        audio.src = alternatePronunciation.url
         audio.play()
     }
 })(window.wkof)
